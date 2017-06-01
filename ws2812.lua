@@ -78,6 +78,14 @@ local function change_color(r, g, b)
     --buffer:fill(r, g, b)
     buffer:fill(g, r, b)
     ws2812.write(buffer)
+    local f = file.open("state.lua", "w")
+    if f then
+        file.write("last_color = \{\}")
+        file.write("\nlast_color.r = " .. r)
+        file.write("\nlast_color.g = " .. g)
+        file.write("\nlast_color.b = " .. b)
+        file.close()
+    end
 end
 
 function reverse_shift()

@@ -20,6 +20,15 @@ local initStrip = function()
     buffer = ws2812.newBuffer(ws2812_count, 3)
     buffer:fill(0, 0, 0)
     ws2812.write(buffer)
+
+    if file.exists("state.lua") then
+        dofile("state.lua")
+        if last_color then
+            print("restoring last led state")
+            buffer:fill(last_color.g, last_color.r, last_color.b)
+            ws2812.write(buffer)
+        end
+    end
 end
 
 initStrip()
