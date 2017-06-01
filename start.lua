@@ -14,24 +14,29 @@ if node_started then node.restart() end -- restart when included after start
 dofile('wifi.lc')(wifi_ssid, wifi_password, hostname)
 collectgarbage()
 
-local initStrip = function()
+function get_last_rgb_state()
+    if file.exists("state.lua") then
+        dofile("state.lua")
+        return last_color
+    end
+end
+
+local init_strip = function()
     ws2812.init()
     -- used in http/ws2812.lua
     buffer = ws2812.newBuffer(ws2812_count, 3)
     buffer:fill(0, 0, 0)
     ws2812.write(buffer)
 
-    if file.exists("state.lua") then
-        dofile("state.lua")
-        if last_color then
-            print("restoring last led state")
-            buffer:fill(last_color.g, last_color.r, last_color.b)
-            ws2812.write(buffer)
-        end
+    local last_color = get_last_rgb_state()
+    if last_color then
+        print("restoring last led state")
+        buffer:fill(last_color.g, last_color.r, last_color.b)
+        ws2812.write(buffer)
     end
 end
 
-initStrip()
+init_strip()
 
 wifi.eventmon.register(wifi.eventmon.STA_GOT_IP, function(T)
     print("http://" .. T.IP)
