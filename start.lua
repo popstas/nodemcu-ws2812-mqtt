@@ -1,10 +1,13 @@
 -- Variables --
 dev_name         = "WS2812 led strip"
-mqtt_topic       = "home/room"
+mqtt_topic       = "home/room/led"
 mqtt_name        = "led-strip-room"
 mqtt_host        = "home.popstas.ru"
 ws2812_count     = 450
 hostname         = "ws2812-strip-1"
+
+buffer           = nil
+segments         = { ["1"] = '1-111', ["2"] = '112-229', ["3"] = '230-354', ["4"] = '355-450' }
 
 dofile("config-secrets.lc")
 mqttClient = dofile('mqtt.lc')

@@ -1,6 +1,20 @@
-local function change_color(r, g, b)
-    --buffer:fill(r, g, b)
-    buffer:fill(g, r, b)
+local function change_color(r, g, b, segment)
+    if segment then
+        local s = segments[segment]
+        if not s then segment = nil end
+        local from, to = s:match("(.*)-(.*)")
+        from = tonumber(from)
+        to = tonumber(to)
+        local size = to - from + 1
+        local sbuffer = ws2812.newBuffer(size, 3)
+        sbuffer:fill(g, r, b)
+        buffer:replace(sbuffer:sub(1), from)
+    end
+
+    if not segment then
+        buffer:fill(g, r, b)
+    end
+
     ws2812.write(buffer)
 
     local power = dofile("ws2812-power.lc")(buffer)
@@ -57,24 +71,24 @@ return function (conn, req, args)
     if args.action == 'last' then
         local last_color = get_last_rgb_state()
         print('Switch last color', last_color.r2, last_color.g2, last_color.b2)
-        change_color(last_color.r2, last_color.g2, last_color.b2)
+        change_color(last_color.r2, last_color.g2, last_color.b2, args.s)
     end
 
     if args.action == 'switch' then
         local last_color = get_last_rgb_state()
         if is_on() then
             print('On/off last color: off')
-            change_color(0, 0, 0)
+            change_color(0, 0, 0, args.s)
         else
             print('On/off last color', last_color.r2, last_color.g2, last_color.b2)
-            change_color(last_color.r2, last_color.g2, last_color.b2)
+            change_color(last_color.r2, last_color.g2, last_color.b2, args.s)
         end
     end
 
     if not args.action then
-        print('Color changing to', args.r, args.g, args.b)
+        print('Color changing to', args.r, args.g, args.b, "segment:", args.s)
         if args.r and args.g and args.b then
-            change_color(args.r, args.g, args.b)
+            change_color(args.r, args.g, args.b, args.s)
         end
     end
 
