@@ -6,8 +6,9 @@
 Connect LED strip to D4.
 
 ## Setup NodeMCU
-1. Rename `config_secrets.default.lua` to `config_secrets.lua`
-2. Upload files:
+1. Flash firmware (see user_modules.h for nodemcu-firmware)
+2. Rename `config_secrets.default.lua` to `config_secrets.lua`
+3. Upload files:
 ```
 make upload_all
 ```
