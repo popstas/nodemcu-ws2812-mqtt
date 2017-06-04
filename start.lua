@@ -3,7 +3,7 @@ dev_name         = "WS2812 led strip"
 mqtt_topic       = "home/room"
 mqtt_name        = "led-strip-room"
 mqtt_host        = "home.popstas.ru"
-ws2812_count     = 300
+ws2812_count     = 450
 hostname         = "ws2812-strip-1"
 
 dofile("config-secrets.lc")
