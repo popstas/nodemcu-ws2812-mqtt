@@ -186,7 +186,7 @@ end
 -- TODO: remove
 local function http_response(conn, code, content)
     local codes = { [200] = "OK", [400] = "Bad Request", [404] = "Not Found", [500] = "Internal Server Error", }
-    conn:send("HTTP/1.0 "..code.." "..codes[code].."\r\nServer: nodemcu-ota\r\nContent-Type: text/plain\r\nConnection: close\r\n\r\n"..content)
+    conn:send("HTTP/1.0 "..code.." "..codes[code].."\r\nAccess-Control-Allow-Origin: *\r\nServer: nodemcu-ota\r\nContent-Type: text/plain\r\nConnection: close\r\n\r\n"..content)
     --
 end
 
@@ -208,8 +208,8 @@ return function (conn, req, args)
     end
 
     if args.action == 'last' then
-        print('Switch last color', args.r, args.g, args.b)
         local last_color = get_last_rgb_state()
+        print('Switch last color', last_color.r2, last_color.g2, last_color.b2)
         change_color(last_color.r2, last_color.g2, last_color.b2)
     end
 
