@@ -2,6 +2,11 @@ local function change_color(r, g, b)
     --buffer:fill(r, g, b)
     buffer:fill(g, r, b)
     ws2812.write(buffer)
+
+    local power = dofile("ws2812-power.lc")(buffer)
+    print("power: ", power.a .. " A, ", power.percent .. "%, ", power.power .. " W")
+    mqttClient:publish('power', power.power)
+
     local last_color = get_last_rgb_state()
     local f = file.open("state.lua", "w")
     if f then

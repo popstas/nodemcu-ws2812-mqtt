@@ -20,6 +20,7 @@ LUA_FILES := \
     mqtt.lua \
     ws2812.lua \
     ws2812-newyear.lua \
+    ws2812-power.lua \
 
 # Print usage
 usage:
