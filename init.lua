@@ -51,6 +51,7 @@ function compileFiles()
         'wifi.lua',
         'mqtt.lua',
         'ws2812.lua',
+        'ws2812-newyear.lua',
     }
     for i, f in ipairs(serverFiles) do compileAndRemoveIfNeeded(f) end
 
