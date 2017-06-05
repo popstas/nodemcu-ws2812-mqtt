@@ -21,19 +21,7 @@ local function change_color(r, g, b, segment)
     print("power: ", power.a .. " A, ", power.percent .. "%, ", power.power .. " W")
     mqttClient:publish('power', power.power)
 
-    local last_color = get_last_rgb_state()
-    local f = file.open("state.lua", "w")
-    if f then
-        file.write("last_color = \{\}")
-        file.write("\nlast_color.r = " .. r)
-        file.write("\nlast_color.g = " .. g)
-        file.write("\nlast_color.b = " .. b)
-        if not last_color then last_color = { r = 0, g = 0, b = 0 } end 
-        file.write("\nlast_color.r2 = " .. last_color.r)
-        file.write("\nlast_color.g2 = " .. last_color.g)
-        file.write("\nlast_color.b2 = " .. last_color.b)
-        file.close()
-    end
+    set_state(buffer:dump())
 end
 
 local function newyear_on()
@@ -55,12 +43,6 @@ local function is_black(r, g, b)
     return r == 0 and g == 0 and b == 0
 end
 
-local function is_on()
-    local g, r, b, w = buffer:get(1)
-    print(r, g, b, w)
-    return not is_black(r, g, b)
-end
-
 return function (conn, req, args)
     if args.action == 'newyear' then
         newyear_on()
@@ -69,19 +51,15 @@ return function (conn, req, args)
     end
 
     if args.action == 'last' then
-        local last_color = get_last_rgb_state()
-        print('Switch last color', last_color.r2, last_color.g2, last_color.b2)
-        change_color(last_color.r2, last_color.g2, last_color.b2, args.s)
+        change_color_state("1")
     end
 
     if args.action == 'switch' then
-        local last_color = get_last_rgb_state()
-        if is_on() then
+        if buffer:power() > 0 then
             print('On/off last color: off')
             change_color(0, 0, 0, args.s)
         else
-            print('On/off last color', last_color.r2, last_color.g2, last_color.b2)
-            change_color(last_color.r2, last_color.g2, last_color.b2, args.s)
+            change_color_state("2")
         end
     end
 
