@@ -153,7 +153,6 @@ local function onReceive(conn, payload)
     elseif file.exists('http-routes.lc') then
         -- file for custom routes
         res = dofile('http-routes.lc')(conn, req, req.uri.args)
-        print(req.uri.file, 'res', res)
     end
 
     if not res then
