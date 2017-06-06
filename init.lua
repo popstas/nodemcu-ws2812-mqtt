@@ -1,4 +1,4 @@
-print("free:", node.heap())
+print('free:', node.heap())
 startup_timeout = 1000
 
 uart.setup(0, 115200, 8, 0, 1, 1 )
