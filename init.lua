@@ -45,6 +45,7 @@ function compileFiles()
     
     local serverFiles = {
         'http-request.lua',
+        'http-routes.lua',
         'start.lua',
         'ota.lua',
         'config-secrets.lua',

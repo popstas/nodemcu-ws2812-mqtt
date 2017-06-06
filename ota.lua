@@ -7,6 +7,7 @@ local function http_response(conn, code, content)
     --
 end
 
+
 -- https://github.com/nodemcu/nodemcu-firmware/blob/master/lua_examples/telnet.lua
 local function telnet_start()
     telnet_srv = net.createServer(net.TCP, 180)
@@ -28,6 +29,7 @@ local function telnet_start()
         print(dev_name)
     end)
 end
+
 
 local function ota_controller(conn, req, args)
     collectgarbage()
@@ -135,7 +137,10 @@ local function onReceive(conn, payload)
         return -- not all body received
     end
 
-    if req.uri.file == "http/ota" then
+    local res = true
+    if req.uri.file == "http/favicon.ico" then
+        http_response(conn, 404, "")
+    elseif req.uri.file == "http/ota" then
         ota_controller(conn, req, req.uri.args)
     elseif req.uri.file == "http/dofile" then
         dofile_controller(conn, req, req.uri.args)
@@ -145,9 +150,13 @@ local function onReceive(conn, payload)
         restart_controller(conn, req, req.uri.args)
     elseif req.uri.file == "http/health" then
         health_controller(conn, req, req.uri.args)
-    elseif req.uri.file == "http/ws2812.lua" then
-        dofile("ws2812.lc")(conn, req, req.uri.args)
-    else
+    elseif file.exists("http-routes.lc") then
+        -- file for custom routes
+        res = dofile("http-routes.lc")(conn, req, req.uri.args)
+        print(req.uri.file, "res", res)
+    end
+
+    if not res then
         http_response(conn, 400, "Unknown command")
     end
 
