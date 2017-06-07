@@ -42,7 +42,17 @@ local function ota2_start()
                                 debug('file renamed', 2)
                             end
                             debug('total invalid:'..invalid, 1)
+
+                        elseif cmd == 'restart' then
+                            node.restart()
+                        
+                        elseif cmd == 'dofile' then
+                            local filename = args.filename
+                            tmr.alarm(0, 1000, tmr.ALARM_SINGLE, function()
+                                dofile(filename)
+                            end)
                         end
+                        
                         body_started = false
                         cmd = nil
                         args = nil
