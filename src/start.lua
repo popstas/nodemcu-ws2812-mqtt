@@ -81,13 +81,9 @@ wifi.eventmon.register(wifi.eventmon.STA_GOT_IP, function(T)
     mqttClient:connect()
     mqttClient.client:on('connect', function(client)
         print('mqtt connected')
-        local c = {}
-        c.r = 50
-        c.g = 10
-        c.b = 10
-        --dofile('ws2812.lc')('', c)
     end)
     dofile('ota.lc')()
+    dofile('ota2.lua')
     collectgarbage()
     print('free after wifi connected:', node.heap())
 end)

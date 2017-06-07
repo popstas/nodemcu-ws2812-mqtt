@@ -1,7 +1,7 @@
 local telnet_srv
 local telnet_port = 2323
 
-local function http_response(conn, code, content)
+function http_response(conn, code, content)
     local codes = { [200] = 'OK', [400] = 'Bad Request', [404] = 'Not Found', [500] = 'Internal Server Error', }
     conn:send('HTTP/1.0 '..code..' '..codes[code]..'\r\nServer: nodemcu-ota\r\nContent-Type: text/plain\r\nConnection: close\r\n\r\n'..content)
     --
@@ -138,17 +138,18 @@ local function onReceive(conn, payload)
     end
 
     local res = true
-    if req.uri.file == 'http/favicon.ico' then
+    local f = req.uri.file:gsub('http/', '')
+    if f == 'favicon.ico' then
         http_response(conn, 404, '')
-    elseif req.uri.file == 'http/ota' then
+    elseif f == 'ota' then
         ota_controller(conn, req, req.uri.args)
-    elseif req.uri.file == 'http/dofile' then
+    elseif f == 'dofile' then
         dofile_controller(conn, req, req.uri.args)
-    elseif req.uri.file == 'http/telnet' then
+    elseif f == 'telnet' then
         telnet_controller(conn, req, req.uri.args)
-    elseif req.uri.file == 'http/restart' and req.method == 'POST' then
+    elseif f == 'restart' and req.method == 'POST' then
         restart_controller(conn, req, req.uri.args)
-    elseif req.uri.file == 'http/health' then
+    elseif f == 'health' then
         health_controller(conn, req, req.uri.args)
     elseif file.exists('http-routes.lc') then
         -- file for custom routes
