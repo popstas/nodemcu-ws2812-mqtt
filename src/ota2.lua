@@ -81,15 +81,18 @@ local function ota2_start()
                             debug('total invalid:'..invalid, 2)
 
                         elseif cmd == 'restart' then
+                            c:send('OK')
                             node.restart()
 
                         elseif cmd == 'dofile' then
+                            c:send('OK')
                             local filename = args.filename
                             tmr.alarm(0, 2000, tmr.ALARM_SINGLE, function()
                                 dofile(filename)
                             end)
 
                         elseif cmd == 'health' then
+                            c:send('OK')
                             local health = ota_get_health()
                             c:send(ota_get_health()..'#!endoutput')
                             print(health)
@@ -114,8 +117,8 @@ local function ota2_start()
                         file.close()
                         f = file.open('_ota_temp', 'w')
                         debug('start upload', 2)
-                        c:send('OK')
                     end
+                    c:send('OK')
                 else
                     -- stage 2
                     local name, value = str:match('#!arg:(.*)=(.*)')
