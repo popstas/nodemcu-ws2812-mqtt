@@ -7,14 +7,21 @@ local function ota2_start()
     local debug_level = 1
 
     telnet_srv:listen(2323, function(socket)
-        local fifo = {} local fifo_drained = true
-        local function sender(c)
-            if #fifo > 0 then c:send(table.remove(fifo, 1)) else fifo_drained = true end
-        end
+        --local fifo = {} local fifo_drained = true
+        --local function sender(c)
+        --    if #fifo > 0 then c:send(table.remove(fifo, 1)) else fifo_drained = true end
+        --    fifo = {}
+        --end
 
         local function debug(str, level)
             if debug_level >= level then print(str) end
         end
+
+        --local function s_output(str)
+        --    print('send', str)
+        --    table.insert(fifo, str)
+        --    if socket ~= nil and fifo_drained then fifo_drained = false sender(socket) end
+        --end
 
         local function s_input(c, str)
             if cmd then
@@ -32,6 +39,7 @@ local function ota2_start()
                                 valid = stat.size == tonumber(args.length)
                                 if not valid then
                                     debug('invalid upload, expected '..args.length..' bytes, received '..stat.size, 0)
+                                    c:send('ERROR')
                                     invalid = invalid + 1
                                 end
                                 stat = nil
@@ -39,7 +47,8 @@ local function ota2_start()
                             if valid then
                                 if file.exists(args.filename) then file.remove(args.filename) end
                                 file.rename('_ota_temp', args.filename)
-                                debug('file renamed', 2)
+                                debug('upload success', 1)
+                                c:send('OK')
                             end
                             debug('total invalid:'..invalid, 1)
 
@@ -94,15 +103,10 @@ local function ota2_start()
             end
         end
         
-        local function s_output(str)
-            table.insert(fifo, str)
-            if socket ~= nil and fifo_drained then fifo_drained = false sender(socket) end
-        end
-
         --node.output(s_output, 0)
         socket:on('receive', s_input)
         socket:on('disconnection', function(c) node.output(nil) end)
-        socket:on('sent', sender)
+        --socket:on('sent', sender)
     end)
 end
 
