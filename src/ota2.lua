@@ -38,21 +38,18 @@ local function ota2_start()
     local debug_level = 1
 
     telnet_srv:listen(2323, function(socket)
-        --local fifo = {} local fifo_drained = true
-        --local function sender(c)
-        --    if #fifo > 0 then c:send(table.remove(fifo, 1)) else fifo_drained = true end
-        --    fifo = {}
-        --end
-
         local function debug(str, level)
             if debug_level >= level then print(str) end
         end
 
-        --local function s_output(str)
-        --    print('send', str)
-        --    table.insert(fifo, str)
-        --    if socket ~= nil and fifo_drained then fifo_drained = false sender(socket) end
-        --end
+        local function s_disconnection(c)
+            body_started = false
+            cmd = nil
+            args = nil
+            f = nil
+            valid = nil
+            collectgarbage()
+        end
 
         local function s_input(c, str)
             if cmd then
@@ -81,35 +78,32 @@ local function ota2_start()
                                 debug('upload success', 1)
                                 c:send('OK')
                             end
-                            debug('total invalid:'..invalid, 1)
+                            debug('total invalid:'..invalid, 2)
 
                         elseif cmd == 'restart' then
                             node.restart()
-                        
+
                         elseif cmd == 'dofile' then
                             local filename = args.filename
                             tmr.alarm(0, 2000, tmr.ALARM_SINGLE, function()
                                 dofile(filename)
                             end)
-                        
+
                         elseif cmd == 'health' then
                             local health = ota_get_health()
                             c:send(ota_get_health()..'#!endoutput')
                             print(health)
                             health = nil
+
                         end
-                        
-                        body_started = false
-                        cmd = nil
-                        args = nil
-                        f = nil
-                        valid = nil
+
                         debug('memory: '..node.heap(), 1)
                     else
                         -- stage 3 process
                         if cmd == 'upload' then
-                            --print(str)
+                            --print('writing...')
                             f.write(str)
+                            c:send('OK')
                         end
                     end
                 elseif str == '#!body' then
@@ -120,6 +114,7 @@ local function ota2_start()
                         file.close()
                         f = file.open('_ota_temp', 'w')
                         debug('start upload', 2)
+                        c:send('OK')
                     end
                 else
                     -- stage 2
@@ -127,6 +122,7 @@ local function ota2_start()
                     if name then
                         debug('received arg: '..name..' = '..value, 2)
                         args[name] = value
+                        c:send('OK')
                     end 
                     
                 end
@@ -136,14 +132,13 @@ local function ota2_start()
                 if cmd then
                     debug('received cmd: '..cmd, 1)
                     args = {}
+                    c:send('OK')
                 end
             end
         end
-        
-        --node.output(s_output, 0)
+
         socket:on('receive', s_input)
-        socket:on('disconnection', function(c) node.output(nil) end)
-        --socket:on('sent', sender)
+        socket:on('disconnection', s_disconnection)
     end)
 end
 
