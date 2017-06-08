@@ -1,6 +1,37 @@
 if telnet_srv then telnet_srv:close() end
 telnet_srv = net.createServer(net.TCP, 180)
 
+local function ota_get_health()
+    local resp = '# General: \n'
+    resp = resp .. 'Device name: ' .. dev_name .. '\n'
+    resp = resp .. 'Chip ID: ' .. node.chipid() .. '\n'
+    resp = resp .. 'Uptime: ' .. tmr.time() .. '\n\n'
+
+    if mqttClient then
+        resp = resp .. '# Device MQTT:\n'
+        resp = resp .. mqttClient:get_last() .. '\n'
+    end
+
+    local free, used, total = file.fsinfo()
+    resp = resp .. '# File system:\n'
+    resp = resp .. 'Total: ' .. total .. '\n'
+    resp = resp .. 'Used:  ' .. used .. '\n'
+    resp = resp .. 'Free:  ' .. free .. '\n\n'
+    free = nil used = nil total = nil
+
+    resp = resp .. '# Files (name, size):\n'
+    local l = file.list();
+    for k,v in pairs(l) do
+        resp = resp .. k..', '..v..'\n'
+    end
+    l = nil
+
+    resp = resp .. '\n'
+    resp = resp .. 'Heap: ' .. node.heap() .. '\n'
+
+    return resp
+end
+
 local function ota2_start()
     local cmd, args, body_started, f, valid
     local invalid = 0
@@ -57,9 +88,15 @@ local function ota2_start()
                         
                         elseif cmd == 'dofile' then
                             local filename = args.filename
-                            tmr.alarm(0, 1000, tmr.ALARM_SINGLE, function()
+                            tmr.alarm(0, 2000, tmr.ALARM_SINGLE, function()
                                 dofile(filename)
                             end)
+                        
+                        elseif cmd == 'health' then
+                            local health = ota_get_health()
+                            c:send(ota_get_health()..'#!endoutput')
+                            print(health)
+                            health = nil
                         end
                         
                         body_started = false
