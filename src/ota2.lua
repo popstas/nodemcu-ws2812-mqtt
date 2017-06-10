@@ -1,5 +1,7 @@
 if telnet_srv then telnet_srv:close() end
 telnet_srv = net.createServer(net.TCP, 180)
+if telnet2_srv then telnet2_srv:close() end
+telnet2_srv = net.createServer(net.TCP, 180)
 
 local function ota_get_health()
     local resp = '# General: \n'
@@ -30,6 +32,35 @@ local function ota_get_health()
     resp = resp .. 'Heap: ' .. node.heap() .. '\n'
 
     return resp
+end
+
+local function ota2_telnet_start()
+    print('telnet started')
+    telnet2_srv:listen(2324, function(socket)
+        local fifo = {} local fifo_drained = true
+        local function sender(c)
+            if #fifo > 0 then c:send(table.remove(fifo, 1)) else fifo_drained = true end
+            fifo = {}
+        end
+        local function s_output(str)
+            table.insert(fifo, str)
+            if socket ~= nil and fifo_drained then fifo_drained = false sender(socket) end
+        end
+
+        node.output(s_output, 0)
+        socket:on('receive', function(c, l)
+            node.input(l) end
+        )
+        socket:on('disconnection', function(c)
+            fifo = nil fifo_drained = nil
+            node.output(nil)
+            socket:on('receive', s_input)
+            socket:on('sent', nil)
+            print('client disconnected')
+            socket:on('disconnection', s_disconnection)
+        end)
+        socket:on('sent', sender)
+    end)
 end
 
 local function ota2_start()
@@ -146,3 +177,4 @@ local function ota2_start()
 end
 
 ota2_start()
+ota2_telnet_start()
