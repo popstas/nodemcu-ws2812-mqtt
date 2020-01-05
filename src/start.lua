@@ -9,9 +9,10 @@ hostname         = 'ws2812-strip-1'
 buffer           = nil
 segments         = { ['1'] = '1-111', ['2'] = '112-229', ['3'] = '230-354', ['4'] = '355-450', ['work'] = '100-240' }
 
+
 -- for tests on two strips
-if file.exists('variables-1.lua') then dofile('variables-1.lua') end
-if file.exists('variables-2.lua') then dofile('variables-2.lua') end
+if file.exists('variables-1.lua') then print('using variables-1.lua') dofile('variables-1.lua') end
+if file.exists('variables-2.lua') then print('using variables-2.lua') dofile('variables-2.lua') end
 
 dofile('config-secrets.lc')
 mqttClient = dofile('mqtt.lc')
@@ -75,15 +76,21 @@ local init_strip = function()
 end
 
 init_strip()
+--dofile(newyear_script)(true)
 
 wifi.eventmon.register(wifi.eventmon.STA_GOT_IP, function(T)
     print('http://' .. T.IP)
     mqttClient:connect()
     mqttClient.client:on('connect', function(client)
-        print('mqtt connected')
+        print('mqtt connected, topic: ' .. mqtt_topic)
+
+        dofile('ws2812.lc')()
+        print('free after mqtt connected:', node.heap())
     end)
-    dofile('ota.lc')()
-    dofile('ota2.lua')
+
+    --print('before ota:', node.heap())
+    --dofile('ota.lc')()
+    --dofile('ota2.lc')
     collectgarbage()
     print('free after wifi connected:', node.heap())
 end)

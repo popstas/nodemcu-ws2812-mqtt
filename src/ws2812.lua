@@ -1,14 +1,29 @@
+local newyear_script = 'ws2812-newyear-effects.lc'
+
 local function change_color(r, g, b, segment)
+    print('set color: '..r..','..g..','..b..', segment:', segment)
     if segment then
+        --print('segment:', segment)
+        local from, to
         local s = segments[segment]
-        if not s then segment = nil end
-        local from, to = s:match('(.*)-(.*)')
+        if not s then
+            from, to = segment:match('(.*)-(.*)')
+        else
+            from, to = s:match('(.*)-(.*)')
+        end
+
         from = tonumber(from)
         to = tonumber(to)
-        local size = to - from + 1
-        local sbuffer = ws2812.newBuffer(size, 3)
-        sbuffer:fill(g, r, b)
-        buffer:replace(sbuffer:sub(1), from)
+
+        if from == nil or to == nil then
+            segment = nil
+        else
+            --print('from:', from, 'to:', to)
+            local size = to - from + 1
+            local sbuffer = ws2812.newBuffer(size, 3)
+            sbuffer:fill(g, r, b)
+            buffer:replace(sbuffer:sub(1), from)
+        end
     end
 
     if not segment then
@@ -18,57 +33,62 @@ local function change_color(r, g, b, segment)
     ws2812.write(buffer)
 
     local power = dofile('ws2812-power.lc')(buffer)
-    print('power: ', power.a .. ' A, ', power.percent .. '%, ', power.power .. ' W')
-    mqttClient:publish('power', power.power)
+    power.newyear = 0
+    print('power: '.. power.a .. ' A, '.. power.percent .. '%, '.. power.power .. ' W')
+    ok, json = pcall(sjson.encode, power)
+    mqttClient:publish('state', json)
 
     set_state(buffer:dump())
 end
 
 local function newyear_on()
-    dofile('ws2812-newyear.lc')()
+    print('newyear on')
+    dofile(newyear_script)(true)
+
+    local power = dofile('ws2812-power.lc')(buffer)
+    power.newyear = 1
+    print('power: '.. power.a .. ' A, '.. power.percent .. '%, '.. power.power .. ' W')
+    ok, json = pcall(sjson.encode, power)
+    mqttClient:publish('state', json)
 end
 
 local function newyear_off()
-    tmr.unregister(0)
-end
-
--- TODO: remove
-local function http_response(conn, code, content)
-    local codes = { [200] = 'OK', [400] = 'Bad Request', [404] = 'Not Found', [500] = 'Internal Server Error', }
-    conn:send('HTTP/1.0 '..code..' '..codes[code]..'\r\nAccess-Control-Allow-Origin: *\r\nServer: nodemcu-ota\r\nContent-Type: text/plain\r\nConnection: close\r\n\r\n'..content)
-    --
+    --print('newyear off')
+    dofile(newyear_script)(false)
 end
 
 local function is_black(r, g, b)
     return r == 0 and g == 0 and b == 0
 end
 
-return function (conn, req, args)
-    if args.action == 'newyear' then
-        newyear_on()
-    else
-        newyear_off()
-    end
+return function()
+    mqttClient.client:subscribe(mqtt_topic .. '/set', 0)
 
-    if args.action == 'last' then
-        change_color_state('1')
-    end
+    mqttClient.client:on('message', function(client, topic, data)
+        print('mqtt: ' .. topic .. ' ' .. data)
 
-    if args.action == 'switch' then
-        if buffer:power() > 0 then
-            print('On/off last color: off')
-            change_color(0, 0, 0, args.s)
-        else
-            change_color_state('2')
+        if topic == mqtt_topic .. '/set' then
+            if data == 'newyear' then
+                newyear_on()
+                return
+            else newyear_off() end
+            
+            if data == '0' then change_color(0, 0, 0)
+            elseif data == '1' then change_color(255, 229, 153)
+            elseif data == 'last' then change_color_state('1')
+            elseif data == 'switch' then
+                if buffer:power() > 0 then
+                    print('On/off last color: off')
+                    change_color(0, 0, 0)
+                else
+                    change_color_state('2')
+                end
+            else
+                local ok, val = pcall(sjson.decode, data)
+                if ok then
+                    change_color(val.r, val.g, val.b, val.s)
+                end
+            end
         end
-    end
-
-    if not args.action then
-        print('Color changing to', args.r, args.g, args.b, 'segment:', args.s)
-        if args.r and args.g and args.b then
-            change_color(args.r, args.g, args.b, args.s)
-        end
-    end
-
-    http_response(conn, 200, 'OK');
+    end)
 end

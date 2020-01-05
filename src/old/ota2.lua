@@ -66,7 +66,7 @@ end
 local function ota2_start()
     local cmd, args, body_started, f, valid
     local invalid = 0
-    local debug_level = 1
+    local debug_level = 2
 
     telnet_srv:listen(2323, function(socket)
         local function debug(str, level)
@@ -94,7 +94,7 @@ local function ota2_start()
                             f:close()
                             debug('file closed', 2)
                             if args.length then
-                                local stat = file.stat('_ota_temp')
+                                local stat = file.stat('_ota_temp.lua')
                                 valid = stat.size == tonumber(args.length)
                                 if not valid then
                                     debug('invalid upload, expected '..args.length..' bytes, received '..stat.size, 0)
@@ -103,12 +103,28 @@ local function ota2_start()
                                 end
                                 stat = nil
                             end
+
+                            if valid and args.compile then
+                                print('compiling...')
+                                local ok, err = pcall(node.compile, '_ota_temp.lua')
+                                if not ok then
+                                    print('compilation failed:')
+                                    print(err)
+                                    if err ~= 'not enough memory' then
+                                        valid = false
+                                    end
+                                end
+                            end
+
                             if valid then
                                 if file.exists(args.filename) then file.remove(args.filename) end
-                                file.rename('_ota_temp', args.filename)
+                                file.rename('_ota_temp.lua', args.filename)
                                 debug('upload success', 1)
                                 c:send('OK')
+                            else
+                                c:send('ERROR')
                             end
+
                             debug('total invalid:'..invalid, 2)
 
                         elseif cmd == 'restart' then
@@ -129,13 +145,24 @@ local function ota2_start()
                             print(health)
                             health = nil
 
+                        elseif cmd == 'test' then
+                            c:send('OK')
+                            print(node.heap())
+                            local ok, err = pcall(node.compile, 'test.lua')
+                            if not ok then
+                                print('compilation failed:')
+                                print(err)
+                            end
+                            print(node.heap())
+
                         end
 
                         debug('memory: '..node.heap(), 1)
                     else
                         -- stage 3 process
+                        print('stage 3...')
                         if cmd == 'upload' then
-                            --print('writing...')
+                            print('str=', str)
                             f.write(str)
                             c:send('OK')
                         end
@@ -146,7 +173,7 @@ local function ota2_start()
                     if cmd == 'upload' and args.filename then
                         valid = true
                         file.close()
-                        f = file.open('_ota_temp', 'w')
+                        f = file.open('_ota_temp.lua', 'w')
                         debug('start upload', 2)
                     end
                     c:send('OK')

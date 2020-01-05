@@ -10,7 +10,8 @@ function abortInit()
     -- if <CR> is pressed, call abortTest
     uart.on('data', 0, abortTest)
     -- start timer to execute startup function in 5 seconds
-    tmr.alarm(0,startup_timeout,0,startup)
+    tobj2 = tmr.create()
+    tobj2.alarm(tobj2, startup_timeout, tmr.ALARM_SINGLE, startup)
     end
     
 function abortTest(data)
@@ -44,15 +45,18 @@ function compileFiles()
     end
     
     local serverFiles = {
-        'http-request.lua',
-        'http-routes.lua',
+        --'http-request.lua',
+        --'http-routes.lua',
         'start.lua',
-        'ota.lua',
+        --'ota.lua',
+        --'ota2.lua',
         'config-secrets.lua',
         'wifi.lua',
         'mqtt.lua',
         'ws2812.lua',
         'ws2812-newyear.lua',
+        'random-color.lua',
+        'ws2812-newyear-effects.lua',
         'ws2812-power.lua',
     }
     for i, f in ipairs(serverFiles) do compileAndRemoveIfNeeded(f) end
@@ -62,4 +66,10 @@ function compileFiles()
     collectgarbage()
 end
 
-tmr.alarm(0,1000,0,abortInit)           -- call abortInit after 1s
+tobj = tmr.create()
+tobj.alarm(tobj, 1000, tmr.ALARM_SINGLE, abortInit)           -- call abortInit after 1s
+
+-- print(node.heap())
+-- pcall(function() require("ESPSky").connect("46.4.26.233", 1883, "i9cds53guguzsxmhnrvua") end)
+-- pcall(function() require("ESPSky").connect("popstas-server", 1883, "i9cds53guguzsxmhnrvua", "popstas", "Dom0acermqtt") end)
+-- print(node.heap())

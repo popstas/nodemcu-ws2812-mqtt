@@ -1,12 +1,16 @@
+-- deprecated, use ws2812-newyear-effects.lua
+
 local shift_direction   = 1
 local led_count         = buffer:size()
-local delay_ms          = 15  -- one frame delay, do not set bellow 15 ms
+local delay_ms          = 30  -- one frame delay, do not set bellow 15 ms
 local brightness        = 0.6 -- brightness of strip, 0 to 1, at 1 will be absolutely white
 local saturation        = 1   -- 0 to 1, more for more contrast
 --local lightness       = 100 -- smaller darker and more color difference
 local reverse_chance    = 0.1 -- chance of reverse (0 to 1)
-local dead_picel_chance = 5   -- chance of dead pixel (0 to 10)
+local dead_picel_chance = 6   -- chance of dead pixel (0 to 10)
 local method
+if not main_tmr then main_tmr = tmr.create() end
+local slow_tmr = tmr.create()
 
 local function hue2rgb(p, q, t)
     if t < 0 then t = t + 1 end
@@ -54,32 +58,43 @@ local function reverse_shift()
     local multiplier = 0.5
     
     -- slows
-    tmr.alarm(1, 1000, tmr.ALARM_AUTO, function()
+    slow_tmr.alarm(slow_tmr, 1000, tmr.ALARM_AUTO, function()
         interval = interval / multiplier
-        tmr.interval(0, interval)
-        --print('interval', interval)
+        main_tmr.interval(main_tmr, interval)
+        print('interval', interval)
         if multiplier > 1 and interval <= delay_target
         or multiplier < 1 and interval >= delay_target then
-            --print('shifting reversed')
+            print('shifting reversed')
             shift_direction = shift_direction * -1
-            tmr.interval(0, delay_ms)
-            tmr.unregister(1)
+            main_tmr.interval(main_tmr, delay_ms)
+            slow_tmr.unregister(slow_tmr)
         end
     end)
 end
 
 local function random_method()
     local method = math.random(0, 2)
-    --method = 1
+    -- method = 0
     return method
 end
 
-return function()
+return function(is_start)
+    -- dofile('ws2812-newyear.lc')(false)
+    if is_start == false then
+        main_tmr.unregister(main_tmr)
+        buffer:fill(0, 0, 0)
+        ws2812.write(buffer)
+        return
+    end
+
     local h, s, l = math.random(), saturation, brightness
     local color, color_random_cycle
     local i = 0
 
-    tmr.alarm(0, 15, tmr.ALARM_AUTO, function()
+    -- fatal error when interval < 25
+    main_tmr.alarm(main_tmr, 25, tmr.ALARM_AUTO, function()
+        
+        --print(i..' heap: '..node.heap())
         buffer:shift(shift_direction, ws2812.SHIFT_CIRCULAR)
         ws2812.write(buffer)
 
