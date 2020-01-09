@@ -1,6 +1,9 @@
+MQTT LED Strip, see last video here - https://photos.app.goo.gl/HRHqkKH5LeZuXorPA
+
 ## Features
-- Control ws2812 led strip over HTTP or MQTT
-- OTA updates
+- Control ws2812 led strip over MQTT
+- Control by defined segment
+- New year mode
 
 ## Wiring
 Connect LED strip to D4.
