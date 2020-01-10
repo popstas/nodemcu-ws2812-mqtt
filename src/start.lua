@@ -9,6 +9,7 @@ hostname         = 'ws2812-strip-1'
 buffer           = nil
 segments         = { ['1'] = '1-111', ['2'] = '112-229', ['3'] = '230-354', ['4'] = '355-450', ['work'] = '100-240' }
 
+local newyear_script = 'ws2812-newyear-effects.lc'
 
 -- for tests on two strips
 if file.exists('variables-1.lua') then print('using variables-1.lua') dofile('variables-1.lua') end
@@ -52,13 +53,35 @@ end
 function change_color_state(state_num)
     local state = get_state(state_num)
     if state then
-        print('Restore strip state '..state_num)
-        buffer:replace(state)
-        ws2812.write(buffer)
+        if state == 'newyear' then
+            newyear_on()
+        else
+            print('Restore strip state '..state_num)
+            buffer:replace(state)
+            ws2812.write(buffer)
+        end
+
         set_state(state)
         state = nil
     end
     collectgarbage()
+end
+
+function newyear_on()
+    print('newyear on')
+    dofile(newyear_script)(true)
+    set_state('newyear')
+
+    local power = dofile('ws2812-power.lc')(buffer)
+    power.newyear = 1
+    print('power: '.. power.a .. ' A, '.. power.percent .. '%, '.. power.power .. ' W')
+    ok, json = pcall(sjson.encode, power)
+    mqttClient:publish('state', json)
+end
+
+function newyear_off()
+    --print('newyear off')
+    dofile(newyear_script)(false)
 end
 
 

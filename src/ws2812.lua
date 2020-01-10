@@ -41,22 +41,6 @@ local function change_color(r, g, b, segment)
     set_state(buffer:dump())
 end
 
-local function newyear_on()
-    print('newyear on')
-    dofile(newyear_script)(true)
-
-    local power = dofile('ws2812-power.lc')(buffer)
-    power.newyear = 1
-    print('power: '.. power.a .. ' A, '.. power.percent .. '%, '.. power.power .. ' W')
-    ok, json = pcall(sjson.encode, power)
-    mqttClient:publish('state', json)
-end
-
-local function newyear_off()
-    --print('newyear off')
-    dofile(newyear_script)(false)
-end
-
 local function is_black(r, g, b)
     return r == 0 and g == 0 and b == 0
 end
