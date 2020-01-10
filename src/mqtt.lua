@@ -3,15 +3,28 @@ mqttClient = {}
 mqttClient.client = mqtt.Client(mqtt_name, 30, mqtt_login, mqtt_password)
 mqttClient.last = {}
 
+local function do_mqtt_connect()
+    mqttClient:connect()
+end
+
+local function do_mqtt_reconnect()
+    print('mqtt offline, reconnect after 5 sec...')
+    local t = tmr.create()
+    t:alarm(5000, tmr.ALARM_SINGLE, do_mqtt_connect)
+end
+
 function mqttClient:connect()
     print('mqtt connect to '..mqtt_host..'...')
     mqttClient.client:connect(
-        mqtt_host, 1883, 0, 1,
+        mqtt_host, 1883, false,
         function(client) print('mqtt connected') end,
-        function(client, reason) print('mqtt connect failed, reason: '..reason) end
+        function(client, reason)
+            print('mqtt connect failed, reason: '..reason)
+            do_mqtt_reconnect()
+        end
     )
     
-    mqttClient.client:on('offline', function(client) print ('mqtt offline') end)
+    mqttClient.client:on('offline', do_mqtt_reconnect)
 end
 
 function mqttClient:get_last()
