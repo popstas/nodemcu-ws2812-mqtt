@@ -1,5 +1,3 @@
-local newyear_script = 'ws2812-newyear-effects.lc'
-
 local function change_color(r, g, b, segment)
     print('set color: '..r..','..g..','..b..', segment:', segment)
     if segment then
