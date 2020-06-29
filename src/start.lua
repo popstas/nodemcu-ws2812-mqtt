@@ -14,6 +14,7 @@ local newyear_script = 'ws2812-newyear-effects.lc'
 -- for tests on two strips
 if file.exists('variables-1.lua') then print('using variables-1.lua') dofile('variables-1.lua') end
 if file.exists('variables-2.lua') then print('using variables-2.lua') dofile('variables-2.lua') end
+print('led count:', ws2812_count)
 
 dofile('config-secrets.lc')
 mqttClient = dofile('mqtt.lc')
