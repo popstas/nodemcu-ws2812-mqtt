@@ -107,8 +107,10 @@ wifi.eventmon.register(wifi.eventmon.STA_GOT_IP, function(T)
     mqttClient:connect()
     mqttClient.client:on('connect', function(client)
         print('mqtt connected, topic: ' .. mqtt_topic)
+        mqttClient.connected = true
 
         dofile('ws2812.lc')()
+        collectgarbage()
         print('free after mqtt connected:', node.heap())
     end)
 
