@@ -1,16 +1,6 @@
 #ifndef __USER_MODULES_H__
 #define __USER_MODULES_H__
 
-#define LUA_USE_BUILTIN_STRING		// for string.xxx()
-#define LUA_USE_BUILTIN_TABLE		// for table.xxx()
-#define LUA_USE_BUILTIN_COROUTINE	// for coroutine.xxx()
-#define LUA_USE_BUILTIN_MATH		// for math.xxx(), partially work
-// #define LUA_USE_BUILTIN_IO 			// for io.xxx(), partially work
-
-// #define LUA_USE_BUILTIN_OS			// for os.xxx(), not work
-// #define LUA_USE_BUILTIN_DEBUG
-#define LUA_USE_BUILTIN_DEBUG_MINIMAL // for debug.getregistry() and debug.traceback()
-
 #ifndef LUA_CROSS_COMPILER
 
 // The default configuration is designed to run on all ESP modules including the 512 KB modules like ESP-01 and only
@@ -24,7 +14,6 @@
 //#define LUA_USE_MODULES_BIT
 //#define LUA_USE_MODULES_BMP085
 //#define LUA_USE_MODULES_BME280
-#define LUA_USE_MODULES_CJSON
 //#define LUA_USE_MODULES_COAP
 //#define LUA_USE_MODULES_CRON
 //#define LUA_USE_MODULES_CRYPTO
@@ -54,6 +43,7 @@
 //#define LUA_USE_MODULES_RTCMEM
 //#define LUA_USE_MODULES_RTCTIME
 //#define LUA_USE_MODULES_SIGMA_DELTA
+#define LUA_USE_MODULES_SJSON
 //#define LUA_USE_MODULES_SNTP
 //#define LUA_USE_MODULES_SOMFY
 //#define LUA_USE_MODULES_SPI
@@ -71,6 +61,8 @@
 //#define LUA_USE_MODULES_WPS
 //#define LUA_USE_MODULES_WS2801
 #define LUA_USE_MODULES_WS2812
+#define LUA_USE_MODULES_WS2812_EFFECTS
+//#define LUA_USE_MODULES_XPT2046
 
 #endif  /* LUA_CROSS_COMPILER */
 #endif	/* __USER_MODULES_H__ */

@@ -1,0 +1,5 @@
+{
+  "scripts": {
+    "upload": "bash scripts/upload.sh"
+  }
+}
