@@ -49,6 +49,8 @@ return function()
     mqttClient.client:on('message', function(client, topic, data)
         print('mqtt: ' .. topic .. ' ' .. data)
 
+        mqttClient:publish('free', node.heap())
+
         if topic == mqtt_topic .. '/set' then
             if data == 'newyear' then
                 newyear_on()

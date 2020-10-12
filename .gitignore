@@ -2,3 +2,4 @@ config-secrets.lua
 .ota
 bin/
 ESPSky-custom.lua
+*.bin
