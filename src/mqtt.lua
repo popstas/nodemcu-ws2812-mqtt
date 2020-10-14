@@ -50,7 +50,7 @@ function mqttClient:publish(subtopic, value)
     end
 
     mqttClient.client:publish(topic, value, 0, 0)
-    mqttClient.last[topic] = value
+--    mqttClient.last[topic] = value
 end
 
 return mqttClient

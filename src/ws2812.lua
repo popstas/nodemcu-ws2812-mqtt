@@ -33,7 +33,7 @@ local function change_color(r, g, b, segment)
     local power = dofile('ws2812-power.lc')(buffer)
     power.newyear = 0
     print('power: '.. power.a .. ' A, '.. power.percent .. '%, '.. power.power .. ' W')
-    ok, json = pcall(sjson.encode, power)
+    local ok, json = pcall(sjson.encode, power)
     mqttClient:publish('state', json)
 
     set_state(buffer:dump())
@@ -74,5 +74,6 @@ return function()
                 end
             end
         end
+        collectgarbage()
     end)
 end

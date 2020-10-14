@@ -18,6 +18,7 @@ print('led count:', ws2812_count)
 
 dofile('config-secrets.lc')
 mqttClient = dofile('mqtt.lc')
+print('after mqtt')
 
 if node_started then node.restart() end -- restart when included after start
 
@@ -76,7 +77,7 @@ function newyear_on()
     local power = dofile('ws2812-power.lc')(buffer)
     power.newyear = 1
     print('power: '.. power.a .. ' A, '.. power.percent .. '%, '.. power.power .. ' W')
-    ok, json = pcall(sjson.encode, power)
+    local ok, json = pcall(sjson.encode, power)
     mqttClient:publish('state', json)
 end
 
